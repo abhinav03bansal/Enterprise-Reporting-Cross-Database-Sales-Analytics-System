@@ -1,0 +1,258 @@
+========================================
+TABLEAU LOD EXPRESSIONS
+FIXED, INCLUDE, EXCLUDE
+========================================
+
+========================================
+FIXED LOD EXPRESSIONS
+========================================
+
+FIXED expressions compute values at a specified level of detail, independent of view dimensions.
+
+----------------------------------------
+Customer-Level Aggregations
+----------------------------------------
+
+Customer Total Spend:
+{ FIXED [Customer Id] : SUM([Total Amount]) }
+
+Customer Order Count:
+{ FIXED [Customer Id] : COUNTD([Sale Id]) }
+
+Customer First Purchase Date:
+{ FIXED [Customer Id] : MIN([Sale Date]) }
+
+Customer Last Purchase Date:
+{ FIXED [Customer Id] : MAX([Sale Date]) }
+
+Customer Lifetime Value:
+{ FIXED [Customer Id] : SUM([Profit]) }
+
+Customer Average Order Value:
+{ FIXED [Customer Id] : AVG([Total Amount]) }
+
+----------------------------------------
+Product-Level Aggregations
+----------------------------------------
+
+Product Total Revenue:
+{ FIXED [Product Id] : SUM([Total Amount]) }
+
+Product Total Units Sold:
+{ FIXED [Product Id] : SUM([Quantity]) }
+
+Product Profit Margin:
+{ FIXED [Product Id] : SUM([Profit]) / SUM([Total Amount]) }
+
+Product First Sale Date:
+{ FIXED [Product Id] : MIN([Sale Date]) }
+
+Product Average Price:
+{ FIXED [Product Id] : AVG([Unit Price]) }
+
+----------------------------------------
+Category-Level Aggregations
+----------------------------------------
+
+Category Total Revenue:
+{ FIXED [Category] : SUM([Total Amount]) }
+
+Category Product Count:
+{ FIXED [Category] : COUNTD([Product Id]) }
+
+Category Average Profit Margin:
+{ FIXED [Category] : SUM([Profit]) / SUM([Total Amount]) }
+
+----------------------------------------
+Geographic Aggregations
+----------------------------------------
+
+State Total Revenue:
+{ FIXED [State] : SUM([Total Amount]) }
+
+State Customer Count:
+{ FIXED [State] : COUNTD([Customer Id]) }
+
+City Average Order Value:
+{ FIXED [City] : AVG([Total Amount]) }
+
+Country Total Profit:
+{ FIXED [Country] : SUM([Profit]) }
+
+----------------------------------------
+Time-Based Aggregations
+----------------------------------------
+
+Monthly Total Revenue:
+{ FIXED YEAR([Sale Date]), MONTH([Sale Date]) : SUM([Total Amount]) }
+
+Daily Order Count:
+{ FIXED [Sale Date] : COUNT([Sale Id]) }
+
+Year Total Sales:
+{ FIXED YEAR([Sale Date]) : SUM([Total Amount]) }
+
+Quarter Revenue:
+{ FIXED YEAR([Sale Date]), QUARTER([Sale Date]) : SUM([Total Amount]) }
+
+========================================
+INCLUDE LOD EXPRESSIONS
+========================================
+
+INCLUDE expressions add dimensions to the view's level of detail.
+
+----------------------------------------
+Customer Analysis with Additional Detail
+----------------------------------------
+
+Revenue Per Customer Per Category:
+{ INCLUDE [Category] : SUM([Total Amount]) / COUNTD([Customer Id]) }
+
+Average Order Value Including Product:
+{ INCLUDE [Product Id] : AVG([Total Amount]) }
+
+Orders Per Customer By State:
+{ INCLUDE [State] : COUNT([Sale Id]) / COUNTD([Customer Id]) }
+
+Profit Per Customer Including Payment Method:
+{ INCLUDE [Payment Method] : SUM([Profit]) / COUNTD([Customer Id]) }
+
+----------------------------------------
+Product Analysis with Additional Detail
+----------------------------------------
+
+Product Revenue Including Customer Segment:
+{ INCLUDE [Customer Segment] : SUM([Total Amount]) }
+
+Units Sold Including Time Period:
+{ INCLUDE MONTH([Sale Date]) : SUM([Quantity]) }
+
+Average Product Price by Category:
+{ INCLUDE [Category] : AVG([Unit Price]) }
+
+----------------------------------------
+Time-Based Analysis
+----------------------------------------
+
+Daily Revenue Including Category:
+{ INCLUDE [Category] : SUM([Total Amount]) }
+
+Monthly Orders Including Status:
+{ INCLUDE [Status] : COUNT([Sale Id]) }
+
+Quarter Profit Including State:
+{ INCLUDE [State] : SUM([Profit]) }
+
+========================================
+EXCLUDE LOD EXPRESSIONS
+========================================
+
+EXCLUDE expressions remove dimensions from the view's level of detail.
+
+----------------------------------------
+Removing Customer Dimension
+----------------------------------------
+
+Total Revenue Excluding Customer:
+{ EXCLUDE [Customer Id] : SUM([Total Amount]) }
+
+Average Order Value Excluding Customer:
+{ EXCLUDE [Customer Id] : AVG([Total Amount]) }
+
+Order Count Excluding Customer:
+{ EXCLUDE [Customer Id] : COUNT([Sale Id]) }
+
+----------------------------------------
+Removing Product Dimension
+----------------------------------------
+
+Revenue Excluding Product:
+{ EXCLUDE [Product Id] : SUM([Total Amount]) }
+
+Average Quantity Excluding Product:
+{ EXCLUDE [Product Id] : AVG([Quantity]) }
+
+Profit Excluding Product:
+{ EXCLUDE [Product Id] : SUM([Profit]) }
+
+----------------------------------------
+Removing Time Dimension
+----------------------------------------
+
+Revenue Excluding Date:
+{ EXCLUDE [Sale Date] : SUM([Total Amount]) }
+
+Orders Excluding Month:
+{ EXCLUDE MONTH([Sale Date]) : COUNT([Sale Id]) }
+
+Average Revenue Excluding Quarter:
+{ EXCLUDE QUARTER([Sale Date]) : AVG([Total Amount]) }
+
+----------------------------------------
+Removing Geographic Dimension
+----------------------------------------
+
+Revenue Excluding State:
+{ EXCLUDE [State] : SUM([Total Amount]) }
+
+Customer Count Excluding City:
+{ EXCLUDE [City] : COUNTD([Customer Id]) }
+
+Profit Excluding Country:
+{ EXCLUDE [Country] : SUM([Profit]) }
+
+========================================
+COMBINED LOD EXAMPLES
+========================================
+
+----------------------------------------
+Percentage of Total Calculations
+----------------------------------------
+
+Customer % of Total Revenue:
+{ FIXED [Customer Id] : SUM([Total Amount]) } / { FIXED : SUM([Total Amount]) }
+
+Product % of Category Revenue:
+{ FIXED [Product Id] : SUM([Total Amount]) } / { FIXED [Category] : SUM([Total Amount]) }
+
+State % of Country Revenue:
+{ FIXED [State] : SUM([Total Amount]) } / { FIXED [Country] : SUM([Total Amount]) }
+
+----------------------------------------
+Ranking Calculations
+----------------------------------------
+
+Customer Revenue Rank:
+RANK_UNIQUE({ FIXED [Customer Id] : SUM([Total Amount]) }, 'desc')
+
+Product Sales Rank Within Category:
+RANK_UNIQUE({ FIXED [Product Id], [Category] : SUM([Quantity]) }, 'desc')
+
+State Revenue Percentile:
+RANK_PERCENTILE({ FIXED [State] : SUM([Total Amount]) })
+
+----------------------------------------
+Cohort Analysis
+----------------------------------------
+
+Cohort Month (First Purchase):
+{ FIXED [Customer Id] : MIN(DATETRUNC('month', [Sale Date])) }
+
+Months Since First Purchase:
+DATEDIFF('month', { FIXED [Customer Id] : MIN([Sale Date]) }, [Sale Date])
+
+Cohort Revenue:
+{ FIXED [Cohort Month] : SUM([Total Amount]) }
+
+----------------------------------------
+Comparison Calculations
+----------------------------------------
+
+Revenue vs Category Average:
+SUM([Total Amount]) - { FIXED [Category] : AVG([Total Amount]) }
+
+Customer Spend vs Average Customer:
+{ FIXED [Customer Id] : SUM([Total Amount]) } - { FIXED : AVG({ FIXED [Customer Id] : SUM([Total Amount]) }) }
+
+Product Performance vs Product Average:
+{ FIXED [Product Id] : SUM([Quantity]) } / { FIXED : AVG({ FIXED [Product Id] : SUM([Quantity]) }) }

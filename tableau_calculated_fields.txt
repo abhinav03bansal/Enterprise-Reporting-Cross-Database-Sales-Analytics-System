@@ -1,0 +1,177 @@
+========================================
+TABLEAU CALCULATED FIELDS
+Key Performance Indicators (KPIs)
+========================================
+
+----------------------------------------
+REVENUE METRICS
+----------------------------------------
+
+Total Revenue:
+SUM([Total Amount])
+
+Revenue (Completed Orders Only):
+SUM(IF [Status] = "Completed" THEN [Total Amount] ELSE 0 END)
+
+Revenue Growth %:
+(SUM([Total Amount]) - LOOKUP(SUM([Total Amount]), -1)) / LOOKUP(SUM([Total Amount]), -1) * 100
+
+Revenue Per Customer:
+SUM([Total Amount]) / COUNTD([Customer Id])
+
+----------------------------------------
+PROFIT METRICS
+----------------------------------------
+
+Profit:
+([Unit Price] - [Cost]) * [Quantity]
+
+Total Profit:
+SUM([Profit])
+
+Profit Margin %:
+SUM([Profit]) / SUM([Total Amount]) * 100
+
+Profit Per Order:
+SUM([Profit]) / COUNT([Sale Id])
+
+----------------------------------------
+ORDER METRICS
+----------------------------------------
+
+Total Orders:
+COUNT([Sale Id])
+
+Completed Orders:
+SUM(IF [Status] = "Completed" THEN 1 ELSE 0 END)
+
+Order Completion Rate:
+SUM(IF [Status] = "Completed" THEN 1 ELSE 0 END) / COUNT([Sale Id]) * 100
+
+Average Order Value (AOV):
+SUM([Total Amount]) / COUNT([Sale Id])
+
+AOV (Completed Only):
+SUM(IF [Status] = "Completed" THEN [Total Amount] ELSE 0 END) / SUM(IF [Status] = "Completed" THEN 1 ELSE 0 END)
+
+----------------------------------------
+QUANTITY METRICS
+----------------------------------------
+
+Total Units Sold:
+SUM([Quantity])
+
+Average Quantity Per Order:
+AVG([Quantity])
+
+Units Sold (Completed):
+SUM(IF [Status] = "Completed" THEN [Quantity] ELSE 0 END)
+
+----------------------------------------
+CUSTOMER METRICS
+----------------------------------------
+
+Total Customers:
+COUNTD([Customer Id])
+
+Active Customers (with orders):
+COUNTD(IF NOT ISNULL([Sale Id]) THEN [Customer Id] END)
+
+Customer Lifetime Value (CLV):
+{ FIXED [Customer Id] : SUM([Total Amount]) }
+
+Customer Order Count:
+{ FIXED [Customer Id] : COUNT([Sale Id]) }
+
+Average Orders Per Customer:
+COUNT([Sale Id]) / COUNTD([Customer Id])
+
+Customer Retention Rate:
+COUNTD(IF [Order Count] > 1 THEN [Customer Id] END) / COUNTD([Customer Id]) * 100
+
+----------------------------------------
+PRODUCT METRICS
+----------------------------------------
+
+Total Products Sold:
+COUNTD([Product Id])
+
+Product Revenue:
+{ FIXED [Product Id] : SUM([Total Amount]) }
+
+Product Units Sold:
+{ FIXED [Product Id] : SUM([Quantity]) }
+
+Product Profit Margin:
+{ FIXED [Product Id] : SUM([Profit]) / SUM([Total Amount]) * 100 }
+
+Top Product Indicator:
+IF { FIXED [Product Id] : SUM([Total Amount]) } >= WINDOW_MAX({ FIXED [Product Id] : SUM([Total Amount]) }) * 0.8 
+THEN "Top 20%" 
+ELSE "Other" 
+END
+
+----------------------------------------
+TIME-BASED METRICS
+----------------------------------------
+
+Month-over-Month Growth:
+(SUM([Total Amount]) - LOOKUP(SUM([Total Amount]), -1)) / ABS(LOOKUP(SUM([Total Amount]), -1))
+
+Year-over-Year Growth:
+(SUM([Total Amount]) - LOOKUP(SUM([Total Amount]), -12)) / ABS(LOOKUP(SUM([Total Amount]), -12))
+
+Running Total:
+RUNNING_SUM(SUM([Total Amount]))
+
+Moving Average (7-period):
+WINDOW_AVG(SUM([Total Amount]), -6, 0)
+
+Days Since Last Order:
+DATEDIFF('day', [Sale Date], TODAY())
+
+Order Recency Category:
+IF [Days Since Last Order] <= 30 THEN "Recent"
+ELSEIF [Days Since Last Order] <= 90 THEN "Active"
+ELSEIF [Days Since Last Order] <= 180 THEN "At Risk"
+ELSE "Churned"
+END
+
+----------------------------------------
+CATEGORY METRICS
+----------------------------------------
+
+Category Revenue Share:
+SUM([Total Amount]) / TOTAL(SUM([Total Amount])) * 100
+
+Category Rank:
+RANK(SUM([Total Amount]), 'desc')
+
+Top Category Indicator:
+IF RANK(SUM([Total Amount]), 'desc') <= 3 THEN "Top 3" ELSE "Other" END
+
+----------------------------------------
+PAYMENT METRICS
+----------------------------------------
+
+Payment Method Distribution:
+COUNTD([Sale Id]) / TOTAL(COUNTD([Sale Id])) * 100
+
+Credit Card Revenue:
+SUM(IF [Payment Method] = "Credit Card" THEN [Total Amount] ELSE 0 END)
+
+----------------------------------------
+GEOGRAPHIC METRICS
+----------------------------------------
+
+State Revenue:
+{ FIXED [State] : SUM([Total Amount]) }
+
+State Rank:
+RANK_UNIQUE({ FIXED [State] : SUM([Total Amount]) }, 'desc')
+
+Customers Per State:
+{ FIXED [State] : COUNTD([Customer Id]) }
+
+Top 5 States Indicator:
+IF RANK_UNIQUE({ FIXED [State] : SUM([Total Amount]) }, 'desc') <= 5 THEN [State] ELSE "Other" END
